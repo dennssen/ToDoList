@@ -1,0 +1,179 @@
+﻿@page
+@using To_Do_List.List
+@model IndexModel
+
+@{
+    ViewData["Title"] = "Home";
+}
+
+<div class="title">
+    <h1>To Do List</h1>
+</div>
+
+<button type="button" class="btn btn-primary btn-lg float-end" data-bs-toggle="modal" data-bs-target="#newListBackdrop">
+    +
+</button>
+
+<!-- Modal -->
+<div class="modal fade" id="newListBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="newListBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="POST">
+                <input type="hidden" name="FormName" value="NewListForm">
+                <div class="modal-header" id="newTodolistheader">
+                    <h5 class="modal-title" id="newListBackdropLabel">New To Do</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body-newlist">
+                    <input type="text" maxlength="20" class="form-control-lg" name="Title" placeholder="Title" required style="display: block; margin: 0 auto;">
+                    <div class="point-list">
+                        <div class="point-container">
+                            <div class="point-list-container" id="newPointContainer">
+                                <div class="point">
+                                    <input type="checkbox" onclick="return false;">
+                                    <input name="PointNames" type="text" maxlength="25" placeholder="Point 1" required>
+                                    <i class="fa fa-trash" style="display: inline-block;" type="button" onclick="DeletePoint(this.parentElement, this.parentElement.parentElement.children.length)"></i>
+                                    <br>
+                                </div>
+                            </div>
+                            <button type="button" class="btn-outline-primary" onclick="NewInsertPoint()">+ Point</button>
+                        </div>
+                    </div>
+                    <div class="color-grid">
+                        <div class="color-preset color-preset-lightblue" onclick="NewSelectedColor(this, '#ADD8E6FF')"></div>
+                        <div class="color-preset color-preset-lightyellow" onclick="NewSelectedColor(this, '#FAFAD2FF')"></div>
+                        <div class="color-preset color-preset-lightgreen" onclick="NewSelectedColor(this, '#90EE90FF')"></div>
+                        <div class="color-preset color-preset-lightred" onclick="NewSelectedColor(this, '#F08080FF')"></div>
+                        <div class="color-preset color-preset-blue" onclick="NewSelectedColor(this, '#0A53BEFF')"></div>
+                        <div class="color-preset color-preset-yellow" onclick="NewSelectedColor(this, '#FFA500FF')"></div>
+                        <div class="color-preset color-preset-green" onclick="NewSelectedColor(this, '#008000FF')"></div>
+                        <div class="color-preset color-preset-red" onclick="NewSelectedColor(this, '#FF0000FF')"></div>
+                    </div>
+                    <input type="hidden" name="Color" id="newColorInput" value="#ffffff">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Understood</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="card-group-grid">
+    @{
+        foreach (var list in @Model.TodoLists)
+        {
+            bool doneList = true;
+            foreach (Point point in list.Points)
+            {
+                if (!point.Done)
+                {
+                    doneList = false;
+                    break;
+                }
+            }
+
+            if (doneList)
+            {
+                Model.ListId = list.Id;
+                Model.DeleteList();
+                Model.ListId = null;
+                continue;
+            }
+            <div class="modal fade" id="oldListBackdrop_@list.Id" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="oldListBackdropLabel_@list.Id" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header" id="oldTodolistheader_@list.Id" style="background-color: @list.Color">
+                            <h5 class="modal-title" id="oldListBackdropLabel_@list.Id">Edit</h5>
+                            <form method="post" style="margin-left: auto">
+                                <input type="hidden" name="FormName" value="DeleteListForm">
+                                <input type="hidden" name="ListId" value="@list.Id">
+                                <input type="submit" value="Delete" class="btn btn-dark">
+                            </form>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form method="POST">
+                            <input type="hidden" name="FormName" value="EditListForm">
+                            <div class="modal-body-newlist">
+                                <input value="@list.Title" maxlength="20" type="text" class="form-control-lg" name="Title" placeholder="Title" required style="display: block; margin: 0 auto;">
+                                <input type="hidden" name="ListId" value="@list.Id">
+                                <div class="point-list">
+                                    <div class="point-container">
+                                        <div class="point-list-container" id="oldPointContainer_@list.Id">
+                                            @{
+                                                foreach (var point in list.Points)
+                                                {
+                                                    <div class="point">
+                                                        <input type="hidden" name="PointDones" value="off">
+                                                        <input type="checkbox" name="PointDones" checked="@point.Done">
+                                                        <input type="text" maxlength="25" name="PointNames" value="@point.Name" placeholder="Point 1" required>
+                                                        <i class="fa fa-trash" style="display: inline-block;" type="button" onclick="DeletePoint(this.parentElement, this.parentElement.parentElement.children.length)"></i>
+                                                        <br>
+                                                    </div>
+                                                }
+                                            }
+                                        </div>
+                                        <button type="button" class="btn-outline-primary" onclick="OldInsertPoint(@list.Id)">+ Point</button>
+                                    </div>
+                                </div>
+                                <div class="color-grid">
+                                    <div class="color-preset color-preset-lightblue" onclick="OldSelectedColor(this, '#ADD8E6FF', @list.Id)"></div>
+                                    <div class="color-preset color-preset-lightyellow" onclick="OldSelectedColor(this, '#FAFAD2FF', @list.Id)"></div>
+                                    <div class="color-preset color-preset-lightgreen" onclick="OldSelectedColor(this, '#90EE90FF', @list.Id)"></div>
+                                    <div class="color-preset color-preset-lightred" onclick="OldSelectedColor(this, '#F08080FF', @list.Id)"></div>
+                                    <div class="color-preset color-preset-blue" onclick="OldSelectedColor(this, '#0A53BEFF', @list.Id)"></div>
+                                    <div class="color-preset color-preset-yellow" onclick="OldSelectedColor(this, '#FFA500FF', @list.Id)"></div>
+                                    <div class="color-preset color-preset-green" onclick="OldSelectedColor(this, '#008000FF', @list.Id)"></div>
+                                    <div class="color-preset color-preset-red" onclick="OldSelectedColor(this, '#FF0000FF', @list.Id)"></div>
+                                </div>
+                                <input type="hidden" name="Color" id="oldColorInput_@list.Id" value="@list.Color">
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="submit" class="btn btn-primary">Understood</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="card" style="border-radius: 15px; width: 300px">
+                <div class="card-body">
+                    <h5 class="card-title" style="padding-left: 10px; display: inline-block; width: fit-content;">@list.Title</h5>
+                    <i class="card-title fa fa-edit float-end" style="font-size: 25px; display: inline-block" type="button" data-bs-toggle="modal" data-bs-target="#oldListBackdrop_@list.Id"></i>
+                    <!--<form method="post" class="card-title float-end" style="width: fit-content; display: inline-block;">
+                        <input type="hidden" name="FormName" value="DeleteListForm">
+                        <input type="hidden" name="ListId" value="@list.Id">
+                        <input type="submit" value="delete" class="btn btn-danger">
+                    </form>-->
+                    <div class="point-container-todo">
+                        @{
+                            foreach (Point point in @list.Points)
+                            {
+                                if (point.Done)
+                                {
+                                    continue;
+                                }
+                                <div class="point-todo">
+                                    <form method="post">
+                                        <input type="hidden" name="FormName" value="UpdatePointForm">
+                                        <input type="hidden" name="PointId" value="@point.Id">
+                                        <input type="checkbox" name="PointDone" checked="@point.Done" onclick="this.parentElement.submit()">
+                                    </form>
+                                    <p>@point.Name</p>
+                                    <br>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+                <div class="card-footer-todo" style="background-color: @list.Color;"></div>
+            </div>
+        }
+    }
+</div>
+
+
+
+
+
